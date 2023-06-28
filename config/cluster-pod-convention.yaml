@@ -2,16 +2,16 @@ apiVersion: conventions.carto.run/v1alpha1
 kind: ClusterPodConvention
 metadata:
   generation: 1
-  name: python-developer-conventions
+  name: simple-conventions
 spec:
   priority: Normal
   selectorTarget: PodTemplateSpec
   webhook:
     #certificate:
-    #  name: python-developer-webhook-cert
-    #  namespace: python-developer-convention
+    #  name: simple-webhook-cert
+    #  namespace: simple-convention
     clientConfig:
       service:
-        name: python-developer-webhook
-        namespace: python-developer-conventions
+        name: simple-webhook
+        namespace: simple-conventions
         port: 80

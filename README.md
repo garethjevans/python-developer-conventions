@@ -1,2 +1,50 @@
-# python-developer-conventions
-a sample conventions server for python applications
+# simple-conventions
+
+a sample conventions server for adding in liveiness/readiness probes.
+
+## Installation
+
+To install the conventions server use: 
+
+```
+make install
+```
+
+This will create a new namespace `simple-convention` and configure cartographer conventions to use this convention provider.
+
+## An example Workload
+
+Below is an example workload that configured two probes.
+
+```
+      1 + |---
+      2 + |apiVersion: carto.run/v1alpha1
+      3 + |kind: Workload
+      4 + |metadata:
+      5 + |  labels:
+      6 + |    app.kubernetes.io/part-of: app-golang-kpack
+      7 + |    apps.tanzu.vmware.com/has-tests: "true"
+      8 + |    apps.tanzu.vmware.com/workload-type: web
+      9 + |  name: app-golang-kpack
+     10 + |  namespace: dev
+     11 + |spec:
+     12 + |  params:
+     13 + |  - name: annotations
+     14 + |    value:
+     15 + |      garethjevans.org/livenessProbe: '{"exec":{"command":["cat","/tmp/healthy"]},"initialDelaySeconds":5,"periodSeconds":5}'
+     16 + |      garethjevans.org/readinessProbe: '{"httpGet":{"path":"/healthz","port":8080},"initialDelaySeconds":5,"periodSeconds":5}'
+     17 + |  - name: testing_pipeline_matching_labels
+     18 + |    value:
+     19 + |      apps.tanzu.vmware.com/pipeline: golang-pipeline
+     20 + |  source:
+     21 + |    git:
+     22 + |      ref:
+     23 + |        branch: main
+     24 + |      url: https://github.com/carto-run/app-golang-kpack
+```
+
+## Generated PodSpec
+
+```
+
+```

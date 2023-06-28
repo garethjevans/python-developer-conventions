@@ -46,5 +46,20 @@ Below is an example workload that configured two probes.
 ## Generated PodSpec
 
 ```
-
+    ...
+    spec:
+      containers:
+      - image: gcr.io/ship-interfaces-dev/supply-chain/app-golang-kpack-dev@sha256:3830de13d0a844420caa3d0a8d77ee1ca5b05897a273465c682032522fc331b5
+        livenessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+        name: workload
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+        resources: {}
+    ...
 ```

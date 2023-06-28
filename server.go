@@ -42,7 +42,7 @@ func conventionHandler(template *corev1.PodTemplateSpec, images []webhook.ImageC
 
 	for i := range template.Spec.Containers {
 		log.Printf("Adding for container %s", template.Spec.Containers[i].Name)
-		c := template.Spec.Containers[i]
+		c := &template.Spec.Containers[i]
 
 		if readinessProbe != "" {
 			// readiness probe
@@ -99,6 +99,8 @@ func conventionHandler(template *corev1.PodTemplateSpec, images []webhook.ImageC
 			}
 		}
 	}
+
+	log.Printf("PodTemplateSpec: %+v", template)
 
 	return applied, nil
 }

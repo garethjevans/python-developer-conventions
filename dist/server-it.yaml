@@ -51,7 +51,8 @@ spec:
     spec:
       containers:
       - name: webhook
-        image: ko://github.com/garethjevans/simple-conventions
+        image: garethjevans/simple-conventions:latest
+        imagePullPolicy: Always
         env:
         - name: PORT
           value: "8443"

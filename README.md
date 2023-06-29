@@ -12,6 +12,14 @@ make install
 
 This will create a new namespace `simple-convention` and configure cartographer conventions to use this convention provider.
 
+## Available Options
+
+| Annotation | Description |
+| --- | --- |
+| `garethjevans.org/livenessProbe` | define a liveness probe |
+| `garethjevans.org/readinessProbe` | define a readiness probe |
+| `garethjevans.org/startupProbe` | define a startup probe |
+
 ## An example Workload
 
 Below is an example workload that configured two probes.

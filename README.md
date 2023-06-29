@@ -71,3 +71,17 @@ Below is an example workload that configured two probes.
         resources: {}
     ...
 ```
+
+### Build this in TAP
+
+```
+tanzu apps workload create simple-conventions \
+  --namespace dev \
+  --git-branch main \
+  --git-repo https://github.com/garethjevans/simple-conventions \
+  --label apps.tanzu.vmware.com/has-tests=true \
+  --label app.kubernetes.io/part-of=simple-conventions \
+  --param-yaml testing_pipeline_matching_labels='{"apps.tanzu.vmware.com/pipeline":"golang-pipeline"}' \
+  --type web \
+  --yes
+```

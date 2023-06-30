@@ -26,17 +26,12 @@ var Conventions = []conventions.Convention{
 				c := &target.Spec.Containers[i]
 
 				if c.ReadinessProbe == nil {
-					c.ReadinessProbe = &corev1.Probe{}
-				}
-
-				if c.ReadinessProbe.ProbeHandler == (corev1.ProbeHandler{}) {
-					probe := corev1.ProbeHandler{}
-					err := json.Unmarshal([]byte(readinessProbe), &probe)
+					p, err := getProbe(readinessProbe)
 					if err != nil {
 						return err
 					}
-					log.Printf("Adding ReadinessProbe %+v", probe)
-					c.ReadinessProbe.ProbeHandler = probe
+					log.Printf("Adding ReadinessProbe %+v", p)
+					c.ReadinessProbe = p
 				}
 			}
 			return nil
@@ -55,17 +50,12 @@ var Conventions = []conventions.Convention{
 				c := &target.Spec.Containers[i]
 
 				if c.LivenessProbe == nil {
-					c.LivenessProbe = &corev1.Probe{}
-				}
-
-				if c.LivenessProbe.ProbeHandler == (corev1.ProbeHandler{}) {
-					probe := corev1.ProbeHandler{}
-					err := json.Unmarshal([]byte(livenessProbe), &probe)
+					p, err := getProbe(livenessProbe)
 					if err != nil {
 						return err
 					}
-					log.Printf("Adding LivenessProbe %+v", probe)
-					c.LivenessProbe.ProbeHandler = probe
+					log.Printf("Adding LivenessProbe %+v", p)
+					c.LivenessProbe = p
 				}
 			}
 			return nil
@@ -84,17 +74,12 @@ var Conventions = []conventions.Convention{
 				c := &target.Spec.Containers[i]
 
 				if c.StartupProbe == nil {
-					c.StartupProbe = &corev1.Probe{}
-				}
-
-				if c.StartupProbe.ProbeHandler == (corev1.ProbeHandler{}) {
-					probe := corev1.ProbeHandler{}
-					err := json.Unmarshal([]byte(startupProbe), &probe)
+					p, err := getProbe(startupProbe)
 					if err != nil {
 						return err
 					}
-					log.Printf("Adding StartupProbe %+v", probe)
-					c.StartupProbe.ProbeHandler = probe
+					log.Printf("Adding StartupProbe %+v", p)
+					c.StartupProbe = p
 				}
 			}
 			return nil
@@ -108,4 +93,10 @@ func getAnnotation(pts *corev1.PodTemplateSpec, key string) string {
 		return ""
 	}
 	return pts.Annotations[key]
+}
+
+func getProbe(config string) (*corev1.Probe, error) {
+	probe := corev1.Probe{}
+	err := json.Unmarshal([]byte(config), &probe)
+	return &probe, err
 }

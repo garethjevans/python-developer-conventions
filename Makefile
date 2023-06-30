@@ -29,7 +29,7 @@ vet: ## Run go vet against code
 
 .PHONY: image
 image:
-	pack build $(DOCKER_ORG)/simple-conventions
+	pack build --publish $(DOCKER_ORG)/simple-conventions:latest
 
 .PHONY: install
 install: test ## Install conventions server

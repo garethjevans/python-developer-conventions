@@ -7,7 +7,7 @@ require (
 	github.com/go-logr/zapr v1.2.4
 	github.com/vmware-tanzu/cartographer-conventions/webhook v0.5.0
 	go.uber.org/zap v1.24.0
-	k8s.io/api v0.27.2
+	k8s.io/api v0.27.3
 )
 
 require (

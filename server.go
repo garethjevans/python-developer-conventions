@@ -19,107 +19,24 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
-	"k8s.io/apimachinery/pkg/util/json"
+	"go.uber.org/zap/zapcore"
+	corev1 "k8s.io/api/core/v1"
+
+	"github.com/garethjevans/simple-conventions/pkg/handler"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
-	"go.uber.org/zap"
-	corev1 "k8s.io/api/core/v1"
-
 	"github.com/vmware-tanzu/cartographer-conventions/webhook"
+	"go.uber.org/zap"
 )
 
-func conventionHandler(template *corev1.PodTemplateSpec, images []webhook.ImageConfig) ([]string, error) {
-	readinessProbe := getAnnotation(template, "garethjevans.org/readinessProbe")
-	livenessProbe := getAnnotation(template, "garethjevans.org/livenessProbe")
-	startupProbe := getAnnotation(template, "garethjevans.org/startupProbe")
-
-	var applied []string
-
-	for i := range template.Spec.Containers {
-		log.Printf("Adding for container %s", template.Spec.Containers[i].Name)
-		c := &template.Spec.Containers[i]
-
-		if readinessProbe != "" {
-			// readiness probe
-			if c.ReadinessProbe == nil {
-				c.ReadinessProbe = &corev1.Probe{}
-			}
-
-			if c.ReadinessProbe.ProbeHandler == (corev1.ProbeHandler{}) {
-				probe := corev1.ProbeHandler{}
-				err := json.Unmarshal([]byte(readinessProbe), &probe)
-				if err != nil {
-					return nil, err
-				}
-				log.Printf("Adding ReadinessProbe %+v", probe)
-				c.ReadinessProbe.ProbeHandler = probe
-
-				applied = append(applied, "garethjevans-readiness-probe")
-			}
-		}
-
-		if livenessProbe != "" {
-			// liveness probe
-			if c.LivenessProbe == nil {
-				c.LivenessProbe = &corev1.Probe{}
-			}
-			if c.LivenessProbe.ProbeHandler == (corev1.ProbeHandler{}) {
-				probe := corev1.ProbeHandler{}
-				err := json.Unmarshal([]byte(livenessProbe), &probe)
-				if err != nil {
-					return nil, err
-				}
-				log.Printf("Adding LivenessProbe %+v", probe)
-				c.LivenessProbe.ProbeHandler = probe
-
-				applied = append(applied, "garethjevans-liveness-probe")
-			}
-		}
-
-		if startupProbe != "" {
-			// startup probe
-			if c.StartupProbe == nil {
-				c.StartupProbe = &corev1.Probe{}
-			}
-			if c.StartupProbe.ProbeHandler == (corev1.ProbeHandler{}) {
-				probe := corev1.ProbeHandler{}
-				err := json.Unmarshal([]byte(startupProbe), &probe)
-				if err != nil {
-					return nil, err
-				}
-				log.Printf("Adding StartupProbe %+v", probe)
-				c.StartupProbe.ProbeHandler = probe
-
-				applied = append(applied, "garethjevans-startup-probe")
-			}
-		}
-	}
-
-	log.Printf("PodTemplateSpec: %+v", template)
-
-	return applied, nil
-}
-
-// getLabel gets the label on PodTemplateSpec
-func getLabel(pts *corev1.PodTemplateSpec, key string) string {
-	if pts.Labels == nil || len(pts.Labels[key]) == 0 {
-		return ""
-	}
-	return pts.Labels[key]
-}
-
-// getAnnotation gets the annotation on PodTemplateSpec
-func getAnnotation(pts *corev1.PodTemplateSpec, key string) string {
-	if pts.Annotations == nil || len(pts.Annotations[key]) == 0 {
-		return ""
-	}
-	return pts.Annotations[key]
-}
+const (
+	logComponentKey  = "component"
+	logComponentName = "simple-conventions"
+)
 
 func main() {
 	ctx := context.Background()
@@ -128,13 +45,24 @@ func main() {
 		port = "9000"
 	}
 
-	zapLog, err := zap.NewProductionConfig().Build()
-	if err != nil {
-		log.Fatalf("failed to create logger: %v", err)
-	}
-	logger := zapr.NewLogger(zapLog)
-	ctx = logr.NewContext(ctx, logger)
+	// Setup logger
+	config := zap.NewProductionConfig()
+	config.EncoderConfig.EncodeTime = zapcore.RFC3339NanoTimeEncoder
 
-	http.HandleFunc("/", webhook.ConventionHandler(ctx, conventionHandler))
-	log.Fatal(webhook.NewConventionServer(ctx, fmt.Sprintf(":%s", port)))
+	l, err := config.Build()
+	if err != nil {
+		os.Exit(1)
+	}
+	logger := l.Sugar().With(logComponentKey, logComponentName)
+	ctx = logr.NewContext(ctx, zapr.NewLogger(l))
+
+	logger.Info("Convention server starting on: %v ...", port)
+
+	c := func(template *corev1.PodTemplateSpec, images []webhook.ImageConfig) ([]string, error) {
+		return handler.AddConventions(logger, template, images)
+	}
+
+	http.HandleFunc("/", webhook.ConventionHandler(ctx, c))
+
+	logger.Fatal(webhook.NewConventionServer(ctx, fmt.Sprintf(":%s", port)))
 }

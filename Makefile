@@ -6,7 +6,7 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 GOIMPORTS ?= go run -modfile hack/go.mod golang.org/x/tools/cmd/goimports
-KO_DOCKER_REPO ?= garethjevans
+DOCKER_ORG ?= garethjevans
 
 .PHONY: all
 all: test
@@ -27,13 +27,17 @@ fmt: ## Run go fmt against code
 vet: ## Run go vet against code
 	go vet ./...
 
+.PHONY: image
+image:
+	pack build $(DOCKER_ORG)/simple-conventions
+
 .PHONY: install
 install: test ## Install conventions server
-	KO_DOCKER_REPO=$(KO_DOCKER_REPO) ko apply -f dist/server-it.yaml
+	kubectl apply -f dist/server-it.yaml
 
 .PHONY: uninstall
 uninstall: ## Uninstall conventions server
-	KO_DOCKER_REPO=$(KO_DOCKER_REPO) ko delete -f dist/server-it.yaml
+	kubectl delete -f dist/server-it.yaml
 
 .PHONY: apply
 apply:

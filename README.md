@@ -63,11 +63,15 @@ Below is an example workload that configured two probes.
             command:
             - cat
             - /tmp/healthy
+          initialDelaySeconds: 5
+          periodSeconds: 5
         name: workload
         readinessProbe:
           httpGet:
             path: /healthz
             port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
         resources: {}
     ...
 ```

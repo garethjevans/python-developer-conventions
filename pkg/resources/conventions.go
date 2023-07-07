@@ -85,14 +85,13 @@ var Conventions = []conventions.Convention{
 			return nil
 		},
 	},
-
 	&conventions.BasicConvention{
 		Id: fmt.Sprintf("%s-carto-run-workload-name", Prefix),
 		Applicable: func(ctx context.Context, target *corev1.PodTemplateSpec, metadata conventions.ImageMetadata) bool {
-			return getLabel(target, "carto.run/workload.name") != ""
+			return getLabel(target, "carto.run/workload-name") != ""
 		},
 		Apply: func(ctx context.Context, target *corev1.PodTemplateSpec, containerIdx int, metadata conventions.ImageMetadata, imageName string) error {
-			value := getLabel(target, "carto.run/workload.name")
+			value := getLabel(target, "carto.run/workload-name")
 
 			for i := range target.Spec.Containers {
 				c := &target.Spec.Containers[i]

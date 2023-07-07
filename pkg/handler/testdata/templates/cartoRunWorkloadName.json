@@ -2,7 +2,7 @@
   "metadata": {
     "creationTimestamp": null,
     "labels": {
-      "carto.run/workload.name": "my-workload"
+      "carto.run/workload-name": "my-workload"
     }
   },
   "spec": {

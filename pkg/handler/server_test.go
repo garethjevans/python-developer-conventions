@@ -117,7 +117,7 @@ func Test_addConventions(t *testing.T) {
 			name: "cartoRunWorkloadName",
 			args: args{
 				logger:   l,
-				template: getMockTemplateWithImageAndLabel("", "carto.run/workload.name", "my-workload"),
+				template: getMockTemplateWithImageAndLabel("", "carto.run/workload-name", "my-workload"),
 				images: []webhook.ImageConfig{
 					{
 						Image: imageDefault,

@@ -85,6 +85,26 @@ var Conventions = []conventions.Convention{
 			return nil
 		},
 	},
+
+	&conventions.BasicConvention{
+		Id: fmt.Sprintf("%s-carto-run-workload-name", Prefix),
+		Applicable: func(ctx context.Context, target *corev1.PodTemplateSpec, metadata conventions.ImageMetadata) bool {
+			return getLabel(target, "carto.run/workload.name") != ""
+		},
+		Apply: func(ctx context.Context, target *corev1.PodTemplateSpec, containerIdx int, metadata conventions.ImageMetadata, imageName string) error {
+			value := getLabel(target, "carto.run/workload.name")
+
+			for i := range target.Spec.Containers {
+				c := &target.Spec.Containers[i]
+				addEnvVar(c, corev1.EnvVar{
+					Name:  "CARTO_RUN_WORKLOAD_NAME",
+					Value: value,
+				})
+			}
+
+			return nil
+		},
+	},
 }
 
 // getAnnotation gets the annotation on PodTemplateSpec
@@ -95,8 +115,26 @@ func getAnnotation(pts *corev1.PodTemplateSpec, key string) string {
 	return pts.Annotations[key]
 }
 
+// getLabel gets the label on PodTemplateSpec
+func getLabel(pts *corev1.PodTemplateSpec, key string) string {
+	if pts.Labels == nil || len(pts.Labels[key]) == 0 {
+		return ""
+	}
+	return pts.Labels[key]
+}
+
 func getProbe(config string) (*corev1.Probe, error) {
 	probe := corev1.Probe{}
 	err := json.Unmarshal([]byte(config), &probe)
 	return &probe, err
+}
+
+func addEnvVar(container *corev1.Container, envvar corev1.EnvVar) bool {
+	for _, e := range container.Env {
+		if e.Name == envvar.Name {
+			return false
+		}
+	}
+	container.Env = append(container.Env, envvar)
+	return true
 }

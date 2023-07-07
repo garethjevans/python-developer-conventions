@@ -113,6 +113,28 @@ func Test_addConventions(t *testing.T) {
 			validateTemplate:   true,
 			wantedTemplateFile: "startupProbe.json",
 		},
+		{
+			name: "cartoRunWorkloadName",
+			args: args{
+				logger:   l,
+				template: getMockTemplateWithImageAndLabel("", "carto.run/workload.name", "my-workload"),
+				images: []webhook.ImageConfig{
+					{
+						Image: imageDefault,
+						BOMs: []webhookv1alpha1.BOM{
+							{
+								Name: "cnb-app:dependencies",
+								Raw:  getFileBytes(testdataPath + "/boms/bom.cdx.not_springboot.json"),
+							},
+						},
+					},
+				},
+			},
+			want:               []string{fmt.Sprintf("%s-carto-run-workload-name", resources.Prefix)},
+			wantErr:            false,
+			validateTemplate:   true,
+			wantedTemplateFile: "cartoRunWorkloadName.json",
+		},
 	}
 
 	for _, tt := range tests {
@@ -178,6 +200,24 @@ func getMockTemplateWithImageAndAnnotation(img string, key string, value string)
 	}
 	return &corev1.PodTemplateSpec{
 		ObjectMeta: v1.ObjectMeta{Annotations: map[string]string{key: value}},
+		Spec: corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:  "workload",
+					Image: img,
+					Ports: make([]corev1.ContainerPort, 0),
+				},
+			},
+		},
+	}
+}
+
+func getMockTemplateWithImageAndLabel(img string, key string, value string) *corev1.PodTemplateSpec {
+	if img == "" {
+		img = imageDefault
+	}
+	return &corev1.PodTemplateSpec{
+		ObjectMeta: v1.ObjectMeta{Labels: map[string]string{key: value}},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{

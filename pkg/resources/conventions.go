@@ -85,6 +85,7 @@ var Conventions = []conventions.Convention{
 			return nil
 		},
 	},
+
 	&conventions.BasicConvention{
 		Id: fmt.Sprintf("%s-carto-run-workload-name", Prefix),
 		Applicable: func(ctx context.Context, target *corev1.PodTemplateSpec, metadata conventions.ImageMetadata) bool {
@@ -104,6 +105,65 @@ var Conventions = []conventions.Convention{
 			return nil
 		},
 	},
+
+	&conventions.BasicConvention{
+		Id: fmt.Sprintf("%s-args", Prefix),
+		Applicable: func(ctx context.Context, target *corev1.PodTemplateSpec, metadata conventions.ImageMetadata) bool {
+			return getAnnotation(target, fmt.Sprintf("%s/args", Prefix)) != ""
+		},
+		Apply: func(ctx context.Context, target *corev1.PodTemplateSpec, containerIdx int, metadata conventions.ImageMetadata, imageName string) error {
+			arguments := getAnnotation(target, fmt.Sprintf("%s/args", Prefix))
+
+			for i := range target.Spec.Containers {
+				c := &target.Spec.Containers[i]
+
+				a, err := getArguments(arguments)
+				if err != nil {
+					return err
+				}
+
+				c.Args = append(c.Args, a...)
+			}
+			return nil
+		},
+	},
+
+	&conventions.BasicConvention{
+		Id: fmt.Sprintf("%s-storage", Prefix),
+		Applicable: func(ctx context.Context, target *corev1.PodTemplateSpec, metadata conventions.ImageMetadata) bool {
+			return getAnnotation(target, fmt.Sprintf("%s/storage", Prefix)) != ""
+		},
+		Apply: func(ctx context.Context, target *corev1.PodTemplateSpec, containerIdx int, metadata conventions.ImageMetadata, imageName string) error {
+			storage := getAnnotation(target, fmt.Sprintf("%s/storage", Prefix))
+
+			for i := range target.Spec.Containers {
+				c := &target.Spec.Containers[i]
+
+				s, err := getStorage(storage)
+				if err != nil {
+					return err
+				}
+
+				c.VolumeMounts = append(c.VolumeMounts, s.VolumeMounts...)
+				target.Spec.Volumes = append(target.Spec.Volumes, s.Volumes...)
+			}
+			return nil
+		},
+	},
+}
+
+// getArguments parse the arguments into a string array
+func getArguments(arguments string) ([]string, error) {
+	var a []string
+	err := json.Unmarshal([]byte(arguments), &a)
+	return a, err
+}
+
+// getStorage parse the arguments into a storage struct
+func getStorage(arguments string) (Storage, error) {
+	var s Storage
+	err := json.Unmarshal([]byte(arguments), &s)
+	return s, err
 }
 
 // getAnnotation gets the annotation on PodTemplateSpec
@@ -136,4 +196,9 @@ func addEnvVar(container *corev1.Container, envvar corev1.EnvVar) bool {
 	}
 	container.Env = append(container.Env, envvar)
 	return true
+}
+
+type Storage struct {
+	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
+	Volumes      []corev1.Volume      `json:"volumes,omitempty"`
 }

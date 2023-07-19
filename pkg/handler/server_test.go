@@ -135,6 +135,50 @@ func Test_addConventions(t *testing.T) {
 			validateTemplate:   true,
 			wantedTemplateFile: "cartoRunWorkloadName.json",
 		},
+		{
+			name: "args",
+			args: args{
+				logger:   l,
+				template: getMockTemplateWithImageAndAnnotation("", fmt.Sprintf("%s/args", resources.Prefix), "[\"one\",\"two\",\"three\"]"),
+				images: []webhook.ImageConfig{
+					{
+						Image: imageDefault,
+						BOMs: []webhookv1alpha1.BOM{
+							{
+								Name: "cnb-app:dependencies",
+								Raw:  getFileBytes(testdataPath + "/boms/bom.cdx.not_springboot.json"),
+							},
+						},
+					},
+				},
+			},
+			want:               []string{fmt.Sprintf("%s-args", resources.Prefix)},
+			wantErr:            false,
+			validateTemplate:   true,
+			wantedTemplateFile: "args.json",
+		},
+		{
+			name: "storage",
+			args: args{
+				logger:   l,
+				template: getMockTemplateWithImageAndAnnotation("", fmt.Sprintf("%s/storage", resources.Prefix), "{\"volumeMounts\":[{\"mountPath\":\"/test\",\"name\":\"test\"}],\"volumes\":[{\"name\":\"test\",\"emptyDir\":{}}]}"),
+				images: []webhook.ImageConfig{
+					{
+						Image: imageDefault,
+						BOMs: []webhookv1alpha1.BOM{
+							{
+								Name: "cnb-app:dependencies",
+								Raw:  getFileBytes(testdataPath + "/boms/bom.cdx.not_springboot.json"),
+							},
+						},
+					},
+				},
+			},
+			want:               []string{fmt.Sprintf("%s-storage", resources.Prefix)},
+			wantErr:            false,
+			validateTemplate:   true,
+			wantedTemplateFile: "storage.json",
+		},
 	}
 
 	for _, tt := range tests {

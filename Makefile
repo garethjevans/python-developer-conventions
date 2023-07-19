@@ -39,6 +39,10 @@ install: test ## Install conventions server
 uninstall: ## Uninstall conventions server
 	kubectl delete -f dist/server-it.yaml
 
+.PHONY: restart
+restart: ## Kill the convention pods and allow them to be restarted
+	kubectl get pods -n simple-convention | grep simple | awk '{print $$1}' | xargs kubectl delete pods -n simple-convention
+
 .PHONY: apply
 apply:
 	kubectl delete workload -n dev app-golang-kpack --ignore-not-found

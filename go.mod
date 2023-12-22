@@ -3,7 +3,7 @@ module github.com/garethjevans/simple-conventions
 go 1.20
 
 require (
-	github.com/go-logr/logr v1.3.0
+	github.com/go-logr/logr v1.4.1
 	github.com/go-logr/zapr v1.3.0
 	github.com/google/go-cmp v0.6.0
 	github.com/vmware-tanzu/cartographer-conventions/webhook v0.6.0
